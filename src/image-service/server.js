@@ -1,7 +1,8 @@
 const express = require('express');
 const { createLogger } = require('../shared/logger');
-const { createConsumer, initConsumer, initProducer, sendMessage } = require('../shared/kafka');
-require('dotenv').config();
+const { createConsumer, initConsumer, initProducer } = require('../shared/kafka');
+const { handleMessage } = require('./handlers/messageHandler');
+const config = require('../api-gateway/config/environment');
 
 const logger = createLogger('image-service');
 
@@ -17,73 +18,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-const processImage = async (document) => {
-    logger.info(`Processing image document: ${document.documentId}`);
-
-    try {
-        // Simulate image processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Generate mock analysis result
-        const result = {
-            documentId: document.documentId,
-            result: {
-                analysis: 'Image analysis complete',
-                metadata: {
-                    format: 'JPEG',
-                    dimensions: '1024x768',
-                    size: '2.3MB',
-                },
-                detectedObjects: [
-                    { name: 'person', confidence: 0.92, boundingBox: { x: 10, y: 20, width: 100, height: 200 } },
-                    { name: 'car', confidence: 0.87, boundingBox: { x: 150, y: 200, width: 300, height: 150 } },
-                ],
-                processingTime: `${Math.random() * 2 + 1}s`,
-            }
-        };
-
-        await sendMessage(process.env.TOPIC_PROCESSING_RESULTS, result);
-        logger.info(`Image processing result sent for document: ${document.documentId}`);
-
-        return true;
-    } catch (error) {
-        logger.error(`Error processing image document ${document.documentId}:`, error);
-        return false;
-    }
-};
-
-const handleMessage = async (topic, message) => {
-    try {
-        logger.info(`Received message from topic ${topic}`);
-
-        if (topic === process.env.TOPIC_IMAGE_PROCESSING) {
-            const { documentId, name, type, content } = message;
-
-            if (!documentId || !type || !content) {
-                logger.error('Invalid message format: missing required fields');
-                return;
-            }
-
-            if (type !== 'image') {
-                logger.error(`Invalid document type for image service: ${type}`);
-                return;
-            }
-
-            const success = await processImage(message);
-
-            if (success) {
-                logger.info(`Successfully processed image document ${documentId}`);
-            } else {
-                logger.error(`Failed to process image document ${documentId}`);
-            }
-        } else {
-            logger.warn(`Received message from unexpected topic: ${topic}`);
-        }
-    } catch (error) {
-        logger.error(`Error handling message from topic ${topic}:`, error);
-    }
-};
-
 const startService = async () => {
     try {
         await initProducer();
@@ -91,16 +25,13 @@ const startService = async () => {
 
         await initConsumer(
             consumer,
-            [process.env.TOPIC_IMAGE_PROCESSING],
+            [config.topics.imageProcessing],
             handleMessage
         );
         logger.info('Image service started and listening for messages');
 
-        const PORT = process.env.IMAGE_SERVICE_PORT || 3001;
-        const HOST = process.env.IMAGE_SERVICE_HOST || 'localhost';
-
-        app.listen(PORT, HOST, () => {
-            logger.info(`Image service health check available at http://${HOST}:${PORT}/health`);
+        app.listen(config.imageService.port, config.imageService.host, () => {
+            logger.info(`Image service health check available at http://${config.imageService.host}:${config.imageService.port}/health`);
         });
 
     } catch (error) {

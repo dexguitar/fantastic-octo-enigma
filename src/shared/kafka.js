@@ -1,24 +1,27 @@
 const { Kafka } = require('kafkajs');
-require('dotenv').config();
+const config = require('../api-gateway/config/environment');
+const { createLogger } = require('./logger');
+
+const logger = createLogger('kafka');
 
 const kafka = new Kafka({
-    clientId: process.env.KAFKA_CLIENT_ID,
-    brokers: process.env.KAFKA_BROKERS.split(','),
+    clientId: config.kafka.clientId,
+    brokers: config.kafka.brokers,
 });
 
 const producer = kafka.producer();
 
 const createConsumer = (groupId) => {
-    return kafka.consumer({ groupId: groupId || process.env.KAFKA_GROUP_ID });
+    return kafka.consumer({ groupId: groupId || config.kafka.groupId });
 };
 
 const initProducer = async () => {
     try {
         await producer.connect();
-        console.log('Kafka producer connected');
+        logger.info('Kafka producer connected');
         return producer;
     } catch (error) {
-        console.error('Error connecting Kafka producer:', error);
+        logger.error('Error initializing Kafka producer:', error);
         throw error;
     }
 };
@@ -29,10 +32,9 @@ const sendMessage = async (topic, message) => {
             topic,
             messages: [{ value: JSON.stringify(message) }],
         });
-        console.log(`Message sent to topic ${topic}`);
-        return true;
+        logger.info(`Message sent to topic ${topic}`);
     } catch (error) {
-        console.error(`Error sending message to topic ${topic}:`, error);
+        logger.error(`Error sending message to topic ${topic}:`, error);
         throw error;
     }
 };
@@ -40,12 +42,12 @@ const sendMessage = async (topic, message) => {
 const initConsumer = async (consumer, topics, messageHandler) => {
     try {
         await consumer.connect();
-        console.log('Kafka consumer connected');
+        logger.info('Kafka consumer connected');
 
         await Promise.all(
             topics.map(async (topic) => {
                 await consumer.subscribe({ topic, fromBeginning: false });
-                console.log(`Subscribed to topic ${topic}`);
+                logger.info(`Subscribed to topic ${topic}`);
             })
         );
 
@@ -53,17 +55,17 @@ const initConsumer = async (consumer, topics, messageHandler) => {
             eachMessage: async ({ topic, partition, message }) => {
                 try {
                     const parsedMessage = JSON.parse(message.value.toString());
-                    console.log(`Received message from topic ${topic}`);
+                    logger.debug(`Received message from topic ${topic}`);
                     await messageHandler(topic, parsedMessage);
                 } catch (error) {
-                    console.error(`Error processing message from topic ${topic}:`, error);
+                    logger.error(`Error processing message from topic ${topic}:`, error);
                 }
             },
         });
 
         return consumer;
     } catch (error) {
-        console.error('Error initializing Kafka consumer:', error);
+        logger.error('Error initializing Kafka consumer:', error);
         throw error;
     }
 };

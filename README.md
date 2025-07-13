@@ -69,6 +69,14 @@ API documentation is available at `http://localhost:3000/api-docs` when the API 
 - `PUT /api/documents/:id`: Update a document
 - `DELETE /api/documents/:id`: Delete a document
 
+### Query Parameters
+
+#### includeContent
+By default, document content is excluded from GET responses to reduce payload size. Use `includeContent=true` to include the full document content in the response.
+
+- `GET /api/documents?includeContent=true`: Get all documents with content
+- `GET /api/documents/:id?includeContent=true`: Get a document by ID with content
+
 ## Example Usage
 
 ### Creating a Text Document
@@ -98,11 +106,60 @@ curl -X POST http://localhost:3000/api/documents \
 ### Getting All Documents
 
 ```bash
+# Get all documents (without content)
 curl -X GET http://localhost:3000/api/documents
+
+# Get all documents with content included
+curl -X GET http://localhost:3000/api/documents?includeContent=true
 ```
 
 ### Getting a Document by ID
 
 ```bash
+# Get a document by ID (without content)
 curl -X GET http://localhost:3000/api/documents/document_id_here
+
+# Get a document by ID with content included
+curl -X GET http://localhost:3000/api/documents/document_id_here?includeContent=true
+```
+
+### Example Response Formats
+
+#### Without Content (Default)
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "sample.txt",
+  "type": "text",
+  "status": "completed",
+  "createdAt": "2023-01-01T00:00:00.000Z",
+  "updatedAt": "2023-01-01T00:01:00.000Z",
+  "result": {
+    "analysis": "Text analysis complete",
+    "statistics": {
+      "wordCount": 245,
+      "characterCount": 1337
+    }
+  }
+}
+```
+
+#### With Content (includeContent=true)
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "sample.txt",
+  "type": "text",
+  "content": "This is a sample text document for processing.",
+  "status": "completed",
+  "createdAt": "2023-01-01T00:00:00.000Z",
+  "updatedAt": "2023-01-01T00:01:00.000Z",
+  "result": {
+    "analysis": "Text analysis complete",
+    "statistics": {
+      "wordCount": 245,
+      "characterCount": 1337
+    }
+  }
+}
 ```
