@@ -1,11 +1,27 @@
 #!/bin/bash
 
 # Docker Compose helper script for Document Processing System
+# Updated to use 'docker compose' instead of 'docker-compose' for newer Docker versions
+
+# Function to check if docker compose is available
+check_docker_compose() {
+    if docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    elif docker-compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    else
+        echo "Error: Neither 'docker compose' nor 'docker-compose' is available"
+        exit 1
+    fi
+}
+
+# Initialize Docker Compose command
+check_docker_compose
 
 case "$1" in
   start)
     echo "Starting Document Processing System using Docker Compose..."
-    docker-compose up -d
+    $DOCKER_COMPOSE_CMD up -d
     echo "Services started!"
     echo "API Gateway: http://localhost:3000"
     echo "API Documentation: http://localhost:3000/api-docs"
@@ -14,14 +30,14 @@ case "$1" in
     
   stop)
     echo "Stopping Document Processing System..."
-    docker-compose down
+    $DOCKER_COMPOSE_CMD down
     echo "Services stopped!"
     ;;
     
   restart)
     echo "Restarting Document Processing System..."
-    docker-compose down
-    docker-compose up -d
+    $DOCKER_COMPOSE_CMD down
+    $DOCKER_COMPOSE_CMD up -d
     echo "Services restarted!"
     echo "API Gateway: http://localhost:3000"
     echo "API Documentation: http://localhost:3000/api-docs"
@@ -31,22 +47,22 @@ case "$1" in
   logs)
     if [ "$2" ]; then
       echo "Showing logs for $2 service..."
-      docker-compose logs -f "$2"
+      $DOCKER_COMPOSE_CMD logs -f "$2"
     else
       echo "Showing logs for all services..."
-      docker-compose logs -f
+      $DOCKER_COMPOSE_CMD logs -f
     fi
     ;;
     
   build)
     echo "Building Docker images..."
-    docker-compose build
+    $DOCKER_COMPOSE_CMD build
     echo "Build complete!"
     ;;
     
   clean)
     echo "Cleaning up Docker resources..."
-    docker-compose down -v
+    $DOCKER_COMPOSE_CMD down -v
     echo "Cleanup complete!"
     ;;
     

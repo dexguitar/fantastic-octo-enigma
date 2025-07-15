@@ -147,5 +147,4 @@ services:
 volumes:
   zookeeper-data:
   zookeeper-log:
-  kafka-data:
-  node_modules: 
+  kafka-data: 

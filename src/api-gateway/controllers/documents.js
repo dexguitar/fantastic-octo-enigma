@@ -10,7 +10,7 @@ const {
     DocumentStatus,
     DocumentType
 } = require('../models/document');
-require('dotenv').config();
+const config = require('../config/environment');
 
 const logger = createLogger('document-controller');
 
@@ -34,8 +34,8 @@ exports.createDocument = async (req, res, next) => {
         logger.info(`Document created: ${document.id}`);
 
         const topic = type === DocumentType.IMAGE
-            ? process.env.TOPIC_IMAGE_PROCESSING
-            : process.env.TOPIC_TEXT_PROCESSING;
+            ? config.topics.imageProcessing
+            : config.topics.textProcessing;
 
         await sendMessage(topic, {
             documentId: document.id,
@@ -44,15 +44,18 @@ exports.createDocument = async (req, res, next) => {
             content: document.content,
         });
 
-        updateDocumentStatus(document.id, DocumentStatus.PROCESSING);
+        const updatedDocument = updateDocumentStatus(document.id, DocumentStatus.PROCESSING);
+        
+        const response = {
+            id: updatedDocument.id,
+            name: updatedDocument.name,
+            type: updatedDocument.type,
+            status: updatedDocument.status,
+            createdAt: updatedDocument.createdAt,
+            updatedAt: updatedDocument.updatedAt,
+        };
 
-        res.status(201).json({
-            id: document.id,
-            name: document.name,
-            type: document.type,
-            status: DocumentStatus.PROCESSING,
-            createdAt: document.createdAt,
-        });
+        res.status(201).json(response);
     } catch (error) {
         logger.error('Error creating document:', error);
         next(error);
@@ -62,8 +65,13 @@ exports.createDocument = async (req, res, next) => {
 exports.getAllDocuments = (req, res, next) => {
     try {
         const documents = getAllDocuments();
+        const includeContent = req.query.includeContent === 'true';
 
         const sanitizedDocuments = documents.map(doc => {
+            if (includeContent) {
+                return doc;
+            }
+            
             const { content, ...rest } = doc;
             return rest;
         });
@@ -84,8 +92,13 @@ exports.getDocumentById = (req, res, next) => {
             return res.status(404).json({ error: `Document with ID ${id} not found` });
         }
 
-        const { content, ...sanitizedDocument } = document;
+        const includeContent = req.query.includeContent === 'true';
+        
+        if (includeContent) {
+            return res.status(200).json(document);
+        }
 
+        const { content, ...sanitizedDocument } = document;
         res.status(200).json(sanitizedDocument);
     } catch (error) {
         logger.error(`Error getting document ${req.params.id}:`, error);
@@ -109,7 +122,6 @@ exports.updateDocument = (req, res, next) => {
         }
 
         const { content, ...sanitizedDocument } = updatedDocument;
-
         res.status(200).json(sanitizedDocument);
     } catch (error) {
         logger.error(`Error updating document ${req.params.id}:`, error);

@@ -1,12 +1,26 @@
 #!/bin/bash
 
 # Docker setup script for Document Processing System
+# Updated to use 'docker compose' instead of 'docker-compose' for newer Docker versions
 
 # Colors for terminal output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
+
+# Function to check if docker compose is available
+check_docker_compose() {
+    if docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    elif docker-compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    else
+        echo -e "${RED}Neither 'docker compose' nor 'docker-compose' is available. Please install Docker Compose.${NC}"
+        echo "Visit https://docs.docker.com/compose/install/ for installation instructions."
+        exit 1
+    fi
+}
 
 # Function to check Docker and Docker Compose
 check_docker() {
@@ -25,12 +39,8 @@ check_docker() {
     exit 1
   fi
   
-  # Check if Docker Compose is installed
-  if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}Docker Compose is not installed. Please install Docker Compose first.${NC}"
-    echo "Visit https://docs.docker.com/compose/install/ for installation instructions."
-    exit 1
-  fi
+  # Check Docker Compose availability
+  check_docker_compose
   
   echo -e "${GREEN}Docker and Docker Compose are installed and running.${NC}"
 }
@@ -95,7 +105,7 @@ case "$1" in
     create_logs_dir
     
     echo -e "${YELLOW}Building production Docker images...${NC}"
-    docker-compose build
+    $DOCKER_COMPOSE_CMD build
     
     echo -e "${GREEN}Production setup complete!${NC}"
     echo ""
@@ -110,7 +120,7 @@ case "$1" in
     create_logs_dir
     
     echo -e "${YELLOW}Building development Docker images...${NC}"
-    docker-compose -f docker-compose.dev.yml build
+    $DOCKER_COMPOSE_CMD -f docker-compose.dev.yml build
     
     echo -e "${GREEN}Development setup complete!${NC}"
     echo ""
