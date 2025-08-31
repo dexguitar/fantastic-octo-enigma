@@ -208,4 +208,4 @@ router.put('/:id', documentsController.updateDocument);
  */
 router.delete('/:id', documentsController.deleteDocument);
 
-module.exports = router; 
+module.exports = router;

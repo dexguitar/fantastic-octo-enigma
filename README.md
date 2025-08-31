@@ -1,3 +1,18 @@
+# Document Processing System
+
+A microservices-based document processing system built with Node.js, Kafka, and PostgreSQL. The system processes text and image documents asynchronously using message queues.
+
+## Architecture
+
+- **API Gateway**: Express.js REST API for document management
+- **Image Service**: Microservice for image processing
+- **Text Service**: Microservice for text processing
+- **PostgreSQL**: Database for persistent document storage
+- **Kafka**: Message broker for async communication
+- **Docker**: Containerized deployment
+
+## Quick Start
+
 ### 1. Initialize the Docker Environment
 
 ```bash
@@ -26,6 +41,7 @@ After starting the services:
 - **API Gateway**: http://localhost:3000
 - **API Documentation**: http://localhost:3000/api-docs
 - **Kafka UI**: http://localhost:8080
+- **PostgreSQL**: localhost:5432 (database: `document_processing`, user: `admin`)
 
 ```bash
 # Start Zookeeper
@@ -55,6 +71,112 @@ npm run start:image
 npm run start:text
 ```
 
+## PostgreSQL Database
+
+### Database Schema
+
+The system uses a single `documents` table with the following structure:
+
+```sql
+CREATE TABLE documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('image', 'text')),
+    content TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    result JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Environment Variables
+
+The following environment variables are used for database connection:
+
+- `DATABASE_URL`: Full PostgreSQL connection string
+- `DB_HOST`: Database host (default: localhost)
+- `DB_PORT`: Database port (default: 5432)
+- `DB_NAME`: Database name (default: document_processing)
+- `DB_USER`: Database user (default: admin)
+- `DB_PASSWORD`: Database password (default: admin123)
+
+### Database Commands
+
+```bash
+# Run database migration manually
+npm run db:migrate
+
+# Reset database (DROP and recreate schema)
+npm run db:reset
+
+# Connect to database from host
+psql postgresql://admin:admin123@localhost:5432/document_processing
+
+# Connect to database via Docker
+docker-compose exec postgres psql -U admin -d document_processing
+```
+
+### Database Operations
+
+All document operations are now async and use PostgreSQL:
+
+```javascript
+// Create document
+const document = await createDocument({
+  name: 'My Document',
+  type: 'text',
+  content: 'Document content here',
+});
+
+// Get all documents
+const documents = await getAllDocuments();
+
+// Get document by ID
+const document = await getDocumentById('uuid-here');
+
+// Update document
+const updated = await updateDocument('uuid-here', { name: 'New Name' });
+
+// Delete document
+const deleted = await deleteDocument('uuid-here');
+
+// Update document status
+const updated = await updateDocumentStatus('uuid-here', 'completed', {
+  result: 'data',
+});
+```
+
+### Connection Pool
+
+The system uses a connection pool with the following settings:
+
+- **Max connections**: 20
+- **Idle timeout**: 30 seconds
+- **Connection timeout**: 5 seconds
+- **SSL**: Enabled in production
+
+### Troubleshooting
+
+#### Connection Issues
+
+1. Ensure PostgreSQL container is running: `docker-compose ps postgres`
+2. Check PostgreSQL logs: `docker-compose logs postgres`
+3. Verify environment variables are correct
+4. Test connection manually: `npm run db:migrate`
+
+#### Performance Issues
+
+1. Check connection pool status in logs
+2. Monitor query execution times
+3. Consider adding indexes for frequently queried fields
+
+#### Data Issues
+
+1. Access database directly: `docker-compose exec postgres psql -U admin -d document_processing`
+2. Check table contents: `SELECT * FROM documents;`
+3. Reset database if needed: `npm run db:reset`
+
 ## API Documentation
 
 API documentation is available at `http://localhost:3000/api-docs` when the API Gateway is running.
@@ -72,6 +194,7 @@ API documentation is available at `http://localhost:3000/api-docs` when the API 
 ### Query Parameters
 
 #### includeContent
+
 By default, document content is excluded from GET responses to reduce payload size. Use `includeContent=true` to include the full document content in the response.
 
 - `GET /api/documents?includeContent=true`: Get all documents with content
@@ -126,6 +249,7 @@ curl -X GET http://localhost:3000/api/documents/document_id_here?includeContent=
 ### Example Response Formats
 
 #### Without Content (Default)
+
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
@@ -145,6 +269,7 @@ curl -X GET http://localhost:3000/api/documents/document_id_here?includeContent=
 ```
 
 #### With Content (includeContent=true)
+
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
