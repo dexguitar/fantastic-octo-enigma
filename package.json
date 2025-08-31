@@ -15,7 +15,15 @@
     "db:migrate": "node src/shared/database/migrate.js",
     "db:reset": "docker-compose exec postgres psql -U admin -d document_processing -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;' && npm run db:migrate",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "health:api": "curl -f http://localhost:3000/health",
+    "health:image": "curl -f http://localhost:3001/health",
+    "health:text": "curl -f http://localhost:3002/health",
+    "health:all": "npm run health:api && npm run health:image && npm run health:text",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build"
   },
   "keywords": [
     "microservices",

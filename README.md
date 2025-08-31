@@ -1,5 +1,9 @@
 # Document Processing System
 
+[![CI](https://github.com/zbibilov/fantastic-octo-enigma/actions/workflows/ci.yml/badge.svg)](https://github.com/zbibilov/fantastic-octo-enigma/actions/workflows/ci.yml)
+[![Docker Build](https://github.com/zbibilov/fantastic-octo-enigma/actions/workflows/docker-build.yml/badge.svg)](https://github.com/zbibilov/fantastic-octo-enigma/actions/workflows/docker-build.yml)
+[![Integration Tests](https://github.com/zbibilov/fantastic-octo-enigma/actions/workflows/integration-test.yml/badge.svg)](https://github.com/zbibilov/fantastic-octo-enigma/actions/workflows/integration-test.yml)
+
 A microservices-based document processing system built with Node.js, Kafka, and PostgreSQL. The system processes text and image documents asynchronously using message queues.
 
 ## Architecture

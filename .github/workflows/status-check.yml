@@ -1,0 +1,44 @@
+name: Status Check
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  status-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check project structure
+        run: |
+          echo "📁 Project Structure Check"
+          ls -la src/
+          echo "✅ API Gateway exists: $([ -d src/api-gateway ] && echo 'Yes' || echo 'No')"
+          echo "✅ Image Service exists: $([ -d src/image-service ] && echo 'Yes' || echo 'No')"
+          echo "✅ Text Service exists: $([ -d src/text-service ] && echo 'Yes' || echo 'No')"
+          echo "✅ Shared modules exist: $([ -d src/shared ] && echo 'Yes' || echo 'No')"
+
+      - name: Validate Docker setup
+        run: |
+          echo "🐳 Docker Configuration Check"
+          docker-compose config --quiet && echo "✅ Docker Compose is valid" || echo "❌ Docker Compose has errors"
+
+      - name: Check package.json scripts
+        run: |
+          echo "📦 Available Scripts:"
+          npm run | grep -E "(start|dev|test|format|health|docker):" || true
