@@ -4,21 +4,29 @@ const { createLogger } = require('../logger');
 const logger = createLogger('database');
 
 // Database configuration from environment variables
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'document_processing',
-  user: process.env.DB_USER || 'admin',
-  password: process.env.DB_PASSWORD || 'admin123',
-
-  // Connection pool settings
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 5000, // Return an error after 5 seconds if connection could not be established
-
-  // Additional PostgreSQL options
-  ssl: false, // Disable SSL for local development and Docker
-};
+const dbConfig = process.env.DATABASE_URL
+  ? {
+      // Railway-style connection string
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // Connection pool settings
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    }
+  : {
+      // Individual environment variables (local development)
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME || 'document_processing',
+      user: process.env.DB_USER || 'admin',
+      password: process.env.DB_PASSWORD || 'admin123',
+      // Connection pool settings
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+      ssl: false,
+    };
 
 // Create connection pool
 const pool = new Pool(dbConfig);
