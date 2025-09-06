@@ -24,21 +24,28 @@ app.get('/health', (req, res) => {
 
 const startService = async () => {
   try {
-    await initProducer();
-    logger.info('Kafka producer initialized');
-
-    await initConsumer(
-      consumer,
-      [config.topics.imageProcessing],
-      handleMessage
-    );
-    logger.info('Image service started and listening for messages');
-
+    // Start HTTP server first
     app.listen(config.imageService.port, config.imageService.host, () => {
       logger.info(
         `Image service health check available at http://${config.imageService.host}:${config.imageService.port}/health`
       );
     });
+
+    // Try to initialize Kafka, but don't fail if it's not available
+    try {
+      await initProducer();
+      logger.info('Kafka producer initialized');
+
+      await initConsumer(
+        consumer,
+        [config.topics.imageProcessing],
+        handleMessage
+      );
+      logger.info('Image service started and listening for messages');
+    } catch (kafkaError) {
+      logger.warn('Kafka not available, running without message processing:', kafkaError.message);
+      logger.info('Image service started (HTTP only - Kafka disabled)');
+    }
   } catch (error) {
     logger.error('Failed to start image service:', error);
     process.exit(1);

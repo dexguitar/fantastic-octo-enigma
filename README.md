@@ -42,8 +42,8 @@ This will check if Docker and Docker Compose are installed, create the necessary
 
 After starting the services:
 
-- **API Gateway**: http://localhost:3000
-- **API Documentation**: http://localhost:3000/api-docs
+- **API Gateway**: fantastic-octo-enigma-production-81ae.up.railway.app
+- **API Documentation**: fantastic-octo-enigma-production-81ae.up.railway.app/api-docs
 - **Kafka UI**: http://localhost:8080
 - **PostgreSQL**: localhost:5432 (database: `document_processing`, user: `admin`)
 
@@ -183,7 +183,7 @@ The system uses a connection pool with the following settings:
 
 ## API Documentation
 
-API documentation is available at `http://localhost:3000/api-docs` when the API Gateway is running.
+API documentation is available at `fantastic-octo-enigma-production-81ae.up.railway.app/api-docs` when the API Gateway is running.
 
 ## API Endpoints
 
@@ -207,9 +207,9 @@ By default, document content is excluded from GET responses to reduce payload si
 ## Example Usage
 
 ### Creating a Text Document
-
+#
 ```bash
-curl -X POST http://localhost:3000/api/documents \
+curl -X POST fantastic-octo-enigma-production-81ae.up.railway.app/api/documents \
   -H "Content-Type: application/json" \
   -d '{
     "name": "sample.txt",
@@ -221,7 +221,7 @@ curl -X POST http://localhost:3000/api/documents \
 ### Creating an Image Document
 
 ```bash
-curl -X POST http://localhost:3000/api/documents \
+curl -X POST fantastic-octo-enigma-production-81ae.up.railway.app/api/documents \
   -H "Content-Type: application/json" \
   -d '{
     "name": "sample.jpg",
@@ -234,20 +234,20 @@ curl -X POST http://localhost:3000/api/documents \
 
 ```bash
 # Get all documents (without content)
-curl -X GET http://localhost:3000/api/documents
+curl -X GET fantastic-octo-enigma-production-81ae.up.railway.app/api/documents
 
 # Get all documents with content included
-curl -X GET http://localhost:3000/api/documents?includeContent=true
+curl -X GET fantastic-octo-enigma-production-81ae.up.railway.app/api/documents?includeContent=true
 ```
 
 ### Getting a Document by ID
 
 ```bash
 # Get a document by ID (without content)
-curl -X GET http://localhost:3000/api/documents/document_id_here
+curl -X GET fantastic-octo-enigma-production-81ae.up.railway.app/api/documents/document_id_here
 
 # Get a document by ID with content included
-curl -X GET http://localhost:3000/api/documents/document_id_here?includeContent=true
+curl -X GET fantastic-octo-enigma-production-81ae.up.railway.app/api/documents/document_id_here?includeContent=true
 ```
 
 ### Example Response Formats

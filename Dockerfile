@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 COPY . .
 
@@ -13,4 +13,5 @@ RUN mkdir -p logs && \
 
 ENV NODE_ENV=production
 
-CMD ["npm", "start"] 
+# Default to API Gateway, but allow override via environment variable
+CMD npm run ${SERVICE_COMMAND:-start:api} 

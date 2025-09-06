@@ -25,7 +25,9 @@
     "docker:logs": "docker-compose logs -f",
     "docker:build": "docker-compose build",
     "test:api": "./scripts/test-api.sh",
-    "test:api:local": "./scripts/test-api.sh http://localhost:3000"
+    "test:api:local": "./scripts/test-api.sh http://localhost:3000",
+    "railway:deploy": "railway up",
+    "railway:logs": "railway logs"
   },
   "keywords": [
     "microservices",

@@ -4,10 +4,23 @@ const { createLogger } = require('./logger');
 
 const logger = createLogger('kafka');
 
-const kafka = new Kafka({
+// Kafka configuration with optional SASL authentication for production
+const kafkaConfig = {
   clientId: config.kafka.clientId,
   brokers: config.kafka.brokers,
-});
+};
+
+// Add SASL authentication if credentials are provided (for external Kafka like Upstash)
+if (process.env.KAFKA_USERNAME && process.env.KAFKA_PASSWORD) {
+  kafkaConfig.sasl = {
+    mechanism: process.env.KAFKA_SASL_MECHANISM || 'scram-sha-256',
+    username: process.env.KAFKA_USERNAME,
+    password: process.env.KAFKA_PASSWORD,
+  };
+  kafkaConfig.ssl = true;
+}
+
+const kafka = new Kafka(kafkaConfig);
 
 const producer = kafka.producer();
 
