@@ -1,0 +1,68 @@
+{
+  "create_document_with_keywords": {
+    "method": "POST",
+    "url": "https://your-railway-app-url.railway.app/api/documents",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "sample-document.txt",
+      "type": "text",
+      "content": "This is a sample document content for testing the keywords functionality. It contains various information that can be processed by the system.",
+      "keywords": "sample,test,document,keywords,functionality"
+    }
+  },
+  
+  "create_document_without_keywords": {
+    "method": "POST", 
+    "url": "https://your-railway-app-url.railway.app/api/documents",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "simple-document.txt",
+      "type": "text",
+      "content": "This document has no keywords specified - should work fine with backward compatibility."
+    }
+  },
+
+  "search_documents_by_keywords": {
+    "method": "GET",
+    "url": "https://your-railway-app-url.railway.app/api/documents/search?keywords=sample,test",
+    "headers": {},
+    "description": "Search for documents containing 'sample' OR 'test' keywords"
+  },
+
+  "search_documents_single_keyword": {
+    "method": "GET", 
+    "url": "https://your-railway-app-url.railway.app/api/documents/search?keywords=document",
+    "headers": {},
+    "description": "Search for documents containing 'document' keyword"
+  },
+
+  "search_documents_with_content": {
+    "method": "GET",
+    "url": "https://your-railway-app-url.railway.app/api/documents/search?keywords=sample,test&includeContent=true",
+    "headers": {},
+    "description": "Search documents and include full content in response"
+  },
+
+  "update_document_keywords": {
+    "method": "PUT",
+    "url": "https://your-railway-app-url.railway.app/api/documents/{document-id}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "updated-document-name.txt",
+      "keywords": "updated,modified,new-keywords"
+    }
+  },
+
+  "get_all_documents": {
+    "method": "GET",
+    "url": "https://your-railway-app-url.railway.app/api/documents",
+    "headers": {},
+    "description": "Get all documents - should now include keywords field"
+  }
+}

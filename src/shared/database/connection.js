@@ -28,6 +28,19 @@ const dbConfig = process.env.DATABASE_URL
       ssl: false,
     };
 
+// Log database configuration (without password) for debugging
+logger.info('Database configuration:', {
+  usingDatabaseUrl: !!process.env.DATABASE_URL,
+  databaseUrl: process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@') : 'Not set',
+  fallbackConfig: !process.env.DATABASE_URL ? { 
+    host: process.env.DB_HOST || 'localhost', 
+    port: process.env.DB_PORT || '5432',
+    database: process.env.DB_NAME || 'document_processing',
+    user: process.env.DB_USER || 'admin'
+  } : 'Not used',
+  nodeEnv: process.env.NODE_ENV
+});
+
 // Create connection pool
 const pool = new Pool(dbConfig);
 

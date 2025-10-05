@@ -26,6 +26,10 @@ const documentsController = require('../controllers/documents');
  *         content:
  *           type: string
  *           description: The content of the document (base64 encoded for images)
+ *         keywords:
+ *           type: string
+ *           description: Comma-separated user-provided keywords for the document
+ *           example: "important,analysis,report"
  *         status:
  *           type: string
  *           enum: [pending, processing, completed, failed]
@@ -45,12 +49,13 @@ const documentsController = require('../controllers/documents');
  *         id: 550e8400-e29b-41d4-a716-446655440000
  *         name: example.txt
  *         type: text
+ *         keywords: "document,processing,example"
  *         status: completed
  *         createdAt: 2023-01-01T00:00:00.000Z
  *         updatedAt: 2023-01-01T00:01:00.000Z
  *         result:
  *           analysis: "Sample analysis result"
- *           keywords: ["sample", "example", "test"]
+ *           extractedKeywords: ["sample", "example", "test"]
  */
 
 /**
@@ -84,6 +89,10 @@ const documentsController = require('../controllers/documents');
  *                 enum: [image, text]
  *               content:
  *                 type: string
+ *               keywords:
+ *                 type: string
+ *                 description: Optional comma-separated keywords for the document
+ *                 example: "test,sample,document"
  *     responses:
  *       201:
  *         description: The document was successfully created
@@ -164,11 +173,13 @@ router.get('/:id', documentsController.getDocumentById);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - name
  *             properties:
  *               name:
  *                 type: string
+ *               keywords:
+ *                 type: string
+ *                 description: Optional comma-separated keywords for the document
+ *                 example: "test,sample,document"
  *     responses:
  *       200:
  *         description: Document updated
@@ -207,5 +218,41 @@ router.put('/:id', documentsController.updateDocument);
  *         description: Server error
  */
 router.delete('/:id', documentsController.deleteDocument);
+
+/**
+ * @swagger
+ * /api/documents/search:
+ *   get:
+ *     summary: Search documents by keywords
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: query
+ *         name: keywords
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Comma-separated keywords to search for
+ *         example: "test,sample,document"
+ *       - in: query
+ *         name: includeContent
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Whether to include document content in response
+ *     responses:
+ *       200:
+ *         description: List of documents matching the keywords
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Document'
+ *       400:
+ *         description: Missing keywords parameter
+ *       500:
+ *         description: Server error
+ */
+router.get('/search', documentsController.searchDocumentsByKeywords);
 
 module.exports = router;
