@@ -27,7 +27,8 @@
     "test:api": "./scripts/test-api.sh",
     "test:api:local": "./scripts/test-api.sh http://localhost:3000",
     "railway:deploy": "railway up",
-    "railway:logs": "railway logs"
+    "railway:logs": "railway logs",
+    "migrate": "node src/shared/database/migrate.js"
   },
   "keywords": [
     "microservices",

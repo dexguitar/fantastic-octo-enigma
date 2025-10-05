@@ -43,6 +43,28 @@ const validateDocumentData = (data) => {
     errors.push('content is required and must be a non-empty string');
   }
 
+  // Validate keywords if provided
+  if (data.keywords !== undefined) {
+    if (!Array.isArray(data.keywords)) {
+      errors.push('keywords must be an array');
+    } else {
+      // Validate each keyword
+      for (let i = 0; i < data.keywords.length; i++) {
+        const keyword = data.keywords[i];
+        if (typeof keyword !== 'string' || keyword.trim().length === 0) {
+          errors.push(`keyword at index ${i} must be a non-empty string`);
+        }
+        if (keyword.length > 50) {
+          errors.push(`keyword at index ${i} must be less than 50 characters`);
+        }
+      }
+      // Limit number of keywords
+      if (data.keywords.length > 20) {
+        errors.push('maximum 20 keywords allowed');
+      }
+    }
+  }
+
   if (data.name && data.name.length > 255) {
     errors.push('name must be less than 255 characters');
   }
@@ -76,6 +98,28 @@ const validateDocumentUpdate = (data) => {
     );
   }
 
+  // Validate keywords if provided
+  if (data.keywords !== undefined) {
+    if (!Array.isArray(data.keywords)) {
+      errors.push('keywords must be an array');
+    } else {
+      // Validate each keyword
+      for (let i = 0; i < data.keywords.length; i++) {
+        const keyword = data.keywords[i];
+        if (typeof keyword !== 'string' || keyword.trim().length === 0) {
+          errors.push(`keyword at index ${i} must be a non-empty string`);
+        }
+        if (keyword.length > 50) {
+          errors.push(`keyword at index ${i} must be less than 50 characters`);
+        }
+      }
+      // Limit number of keywords
+      if (data.keywords.length > 20) {
+        errors.push('maximum 20 keywords allowed');
+      }
+    }
+  }
+
   return errors;
 };
 
@@ -86,13 +130,16 @@ const createDocument = async (data) => {
   }
 
   try {
+    // Prepare keywords array (trim each keyword)
+    const keywords = data.keywords ? data.keywords.map(k => k.trim()) : [];
+
     const result = await query(
       `
-            INSERT INTO documents (name, type, content, status, result)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, name, type, content, status, result, created_at, updated_at
+            INSERT INTO documents (name, type, content, status, result, keywords)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, name, type, content, status, result, keywords, created_at, updated_at
         `,
-      [data.name.trim(), data.type, data.content, DocumentStatus.PENDING, null]
+      [data.name.trim(), data.type, data.content, DocumentStatus.PENDING, null, keywords]
     );
 
     const document = result.rows[0];
@@ -104,6 +151,7 @@ const createDocument = async (data) => {
       type: document.type,
       content: document.content,
       status: document.status,
+      keywords: document.keywords || [],
       createdAt: document.created_at,
       updatedAt: document.updated_at,
       result: document.result,
@@ -117,7 +165,7 @@ const createDocument = async (data) => {
 const getAllDocuments = async () => {
   try {
     const result = await query(`
-            SELECT id, name, type, content, status, result, created_at, updated_at
+            SELECT id, name, type, content, status, result, keywords, created_at, updated_at
             FROM documents
             ORDER BY created_at DESC
         `);
@@ -128,6 +176,7 @@ const getAllDocuments = async () => {
       type: row.type,
       content: row.content,
       status: row.status,
+      keywords: row.keywords || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       result: row.result,
@@ -146,7 +195,7 @@ const getDocumentById = async (id) => {
   try {
     const result = await query(
       `
-            SELECT id, name, type, content, status, result, created_at, updated_at
+            SELECT id, name, type, content, status, result, keywords, created_at, updated_at
             FROM documents
             WHERE id = $1
         `,
@@ -164,6 +213,7 @@ const getDocumentById = async (id) => {
       type: row.type,
       content: row.content,
       status: row.status,
+      keywords: row.keywords || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       result: row.result,
@@ -208,6 +258,11 @@ const updateDocument = async (id, data) => {
       updateValues.push(JSON.stringify(data.result));
     }
 
+    if (data.keywords !== undefined) {
+      updateFields.push(`keywords = $${paramIndex++}`);
+      updateValues.push(data.keywords.map(k => k.trim()));
+    }
+
     if (updateFields.length === 0) {
       // No fields to update, just return current document
       return await getDocumentById(id);
@@ -221,7 +276,7 @@ const updateDocument = async (id, data) => {
             UPDATE documents 
             SET ${updateFields.join(', ')}
             WHERE id = $${paramIndex}
-            RETURNING id, name, type, content, status, result, created_at, updated_at
+            RETURNING id, name, type, content, status, result, keywords, created_at, updated_at
         `;
 
     const result = await query(updateQuery, updateValues);
@@ -237,6 +292,7 @@ const updateDocument = async (id, data) => {
       type: row.type,
       content: row.content,
       status: row.status,
+      keywords: row.keywords || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       result: row.result,
@@ -291,7 +347,7 @@ const updateDocumentStatus = async (id, status, result = null) => {
             UPDATE documents 
             SET status = $1, result = $2, updated_at = CURRENT_TIMESTAMP
             WHERE id = $3
-            RETURNING id, name, type, content, status, result, created_at, updated_at
+            RETURNING id, name, type, content, status, result, keywords, created_at, updated_at
         `;
 
     const queryResult = await query(updateQuery, [
@@ -311,6 +367,7 @@ const updateDocumentStatus = async (id, status, result = null) => {
       type: row.type,
       content: row.content,
       status: row.status,
+      keywords: row.keywords || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       result: row.result,

@@ -6,6 +6,7 @@ const { initializeConsumer } = require('./config/consumer');
 const { setupSwagger } = require('./config/swagger');
 const config = require('./config/environment');
 const { testConnection, closePool } = require('../shared/database/connection');
+const { runMigration } = require('../shared/database/migrate');
 
 const logger = createLogger('api-gateway');
 
@@ -55,6 +56,11 @@ const startServer = async () => {
     if (!dbConnected) {
       throw new Error('Database connection failed');
     }
+
+    // Run database migrations
+    logger.info('Running database migrations...');
+    await runMigration(false); // Don't close pool after migration
+    logger.info('Database migrations completed');
 
     await initProducer();
     await initializeConsumer();

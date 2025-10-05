@@ -16,7 +16,7 @@ const logger = createLogger('document-controller');
 
 exports.createDocument = async (req, res, next) => {
   try {
-    const { name, type, content } = req.body;
+    const { name, type, content, keywords } = req.body;
 
     if (!name || !type || !content) {
       return res.status(400).json({
@@ -30,7 +30,12 @@ exports.createDocument = async (req, res, next) => {
       });
     }
 
-    const document = await createDocument({ name, type, content });
+    const documentData = { name, type, content };
+    if (keywords !== undefined) {
+      documentData.keywords = keywords;
+    }
+
+    const document = await createDocument(documentData);
     logger.info(`Document created: ${document.id}`);
 
     const topic =
@@ -55,6 +60,7 @@ exports.createDocument = async (req, res, next) => {
       name: updatedDocument.name,
       type: updatedDocument.type,
       status: updatedDocument.status,
+      keywords: updatedDocument.keywords,
       createdAt: updatedDocument.createdAt,
       updatedAt: updatedDocument.updatedAt,
     };
@@ -115,13 +121,21 @@ exports.getDocumentById = async (req, res, next) => {
 exports.updateDocument = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, keywords } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: 'Missing required field: name' });
+    if (!name && keywords === undefined) {
+      return res.status(400).json({ error: 'At least one field (name or keywords) is required' });
     }
 
-    const updatedDocument = await updateDocument(id, { name });
+    const updateData = {};
+    if (name !== undefined) {
+      updateData.name = name;
+    }
+    if (keywords !== undefined) {
+      updateData.keywords = keywords;
+    }
+
+    const updatedDocument = await updateDocument(id, updateData);
 
     if (!updatedDocument) {
       return res
