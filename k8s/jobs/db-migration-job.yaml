@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: document-processing
+  labels:
+    app: db-migration
+spec:
+  ttlSecondsAfterFinished: 30
+  template:
+    metadata:
+      labels:
+        app: db-migration
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.35
+          command:
+            [
+              'sh',
+              '-c',
+              'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;',
+            ]
+      containers:
+        - name: db-migration
+          image: document-processing-app:latest
+          imagePullPolicy: Never
+          command: ['npm', 'run', 'db:migrate']
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets

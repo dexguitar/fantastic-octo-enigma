@@ -155,13 +155,7 @@ exports.updateDocument = async (req, res, next) => {
 exports.deleteDocument = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deleted = await deleteDocument(id);
-
-    if (!deleted) {
-      return res
-        .status(404)
-        .json({ error: `Document with ID ${id} not found` });
-    }
+    await deleteDocument(id);
 
     logger.info(`Document deleted: ${id}`);
     res.status(204).send();

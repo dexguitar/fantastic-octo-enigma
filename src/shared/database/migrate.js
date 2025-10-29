@@ -7,16 +7,27 @@ const logger = createLogger('database-migration');
 
 const executeSqlFile = async (filePath) => {
   const sql = await fs.readFile(filePath, 'utf8');
+  logger.info(`Read SQL file (${sql.length} bytes): ${filePath}`);
   
   // Parse SQL statements, handling $$ delimiters for functions
   const statements = parseSqlStatements(sql);
+  logger.info(`Parsed ${statements.length} statements from ${filePath}`);
 
   for (const statement of statements) {
     if (statement.trim()) {
-      logger.info(`Executing: ${statement.substring(0, 50)}...`);
-      await query(statement);
+      logger.info(`Executing statement (${statement.length} bytes): ${statement.substring(0, 100)}...`);
+      try {
+        await query(statement);
+        logger.info(`Successfully executed statement`);
+      } catch (error) {
+        logger.error(`Failed to execute statement:`, error);
+        throw error;
+      }
+    } else {
+      logger.warn(`Skipping empty statement`);
     }
   }
+  logger.info(`Completed executing ${statements.length} statements from ${filePath}`);
 };
 
 const parseSqlStatements = (sql) => {
@@ -26,14 +37,30 @@ const parseSqlStatements = (sql) => {
   let dollarTag = '';
   let i = 0;
 
-  while (i < sql.length) {
-    const char = sql[i];
-    const nextChar = sql[i + 1];
+  // First, remove comment lines
+  const lines = sql.split('\n');
+  const cleanedLines = lines.map(line => {
+    const trimmedLine = line.trim();
+    // Remove SQL comments (lines starting with --)
+    if (trimmedLine.startsWith('--')) {
+      return '';
+    }
+    // Remove inline comments
+    const commentIndex = line.indexOf('--');
+    if (commentIndex >= 0) {
+      return line.substring(0, commentIndex);
+    }
+    return line;
+  });
+  const cleanedSql = cleanedLines.join('\n');
+
+  while (i < cleanedSql.length) {
+    const char = cleanedSql[i];
 
     if (!inDollarQuoted) {
       // Check for start of dollar-quoted string
       if (char === '$') {
-        const dollarMatch = sql.substring(i).match(/^\$([^$]*)\$/);
+        const dollarMatch = cleanedSql.substring(i).match(/^\$([^$]*)\$/);
         if (dollarMatch) {
           dollarTag = dollarMatch[1];
           inDollarQuoted = true;
@@ -46,7 +73,7 @@ const parseSqlStatements = (sql) => {
       // Handle semicolon as statement separator
       if (char === ';') {
         const trimmed = currentStatement.trim();
-        if (trimmed && !trimmed.startsWith('--')) {
+        if (trimmed) {
           statements.push(trimmed);
         }
         currentStatement = '';
@@ -57,7 +84,7 @@ const parseSqlStatements = (sql) => {
       // Check for end of dollar-quoted string
       if (char === '$') {
         const endTag = `$${dollarTag}$`;
-        if (sql.substring(i, i + endTag.length) === endTag) {
+        if (cleanedSql.substring(i, i + endTag.length) === endTag) {
           inDollarQuoted = false;
           currentStatement += endTag;
           i += endTag.length;
@@ -72,7 +99,7 @@ const parseSqlStatements = (sql) => {
 
   // Add the final statement if exists
   const trimmed = currentStatement.trim();
-  if (trimmed && !trimmed.startsWith('--')) {
+  if (trimmed) {
     statements.push(trimmed);
   }
 

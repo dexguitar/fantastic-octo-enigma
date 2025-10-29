@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: document-processing
+data:
+  init.sql: |
+    -- This file is intentionally minimal
+    -- The actual schema will be created by migrations
+    SELECT 'PostgreSQL initialized' as status;

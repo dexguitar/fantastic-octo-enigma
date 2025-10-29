@@ -14,11 +14,6 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
-CREATE INDEX IF NOT EXISTS idx_documents_type ON documents(type);
-CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at DESC);
-
 -- Create function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: document-processing
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # Configuration
+  - configmap.yaml
+  - secret.yaml
+
+  # PostgreSQL
+  - postgres/postgres-init-configmap.yaml
+  - postgres/postgres-pvc.yaml
+  - postgres/postgres-deployment.yaml
+  - postgres/postgres-service.yaml
+
+  # Zookeeper
+  - zookeeper/zookeeper-pvc.yaml
+  - zookeeper/zookeeper-deployment.yaml
+  - zookeeper/zookeeper-service.yaml
+
+  # Kafka
+  - kafka/kafka-pvc.yaml
+  - kafka/kafka-deployment.yaml
+  - kafka/kafka-service.yaml
+
+  # Kafka UI
+  - kafka-ui/kafka-ui-deployment.yaml
+  - kafka-ui/kafka-ui-service.yaml
+
+  # Application Services
+  - api-gateway/api-gateway-deployment.yaml
+  - api-gateway/api-gateway-service.yaml
+  - image-service/image-service-deployment.yaml
+  - image-service/image-service-service.yaml
+  - text-service/text-service-deployment.yaml
+  - text-service/text-service-service.yaml
+
+# Common labels to add to all resources
+commonLabels:
+  project: document-processing
+  managed-by: kustomize
+
+# Images to use (override with kustomize edit set image)
+images:
+  - name: document-processing-app
+    newTag: latest

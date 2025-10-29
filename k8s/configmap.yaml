@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: document-processing
+data:
+  # Node environment
+  NODE_ENV: 'production'
+
+  # Kafka configuration
+  KAFKA_CLIENT_ID: 'document-processor'
+  KAFKA_BROKERS: 'kafka:9092'
+  KAFKA_GROUP_ID: 'document-processing-group'
+  TOPIC_IMAGE_PROCESSING: 'document-image-processing'
+  TOPIC_TEXT_PROCESSING: 'document-text-processing'
+  TOPIC_PROCESSING_RESULTS: 'document-processing-results'
+
+  # Database configuration
+  DB_HOST: 'postgres'
+  DB_PORT: '5432'
+  DB_NAME: 'document_processing'
+  DB_SSL: 'false'
+
+  # Service ports
+  API_PORT: '3000'
+  API_HOST: '0.0.0.0'
+  IMAGE_SERVICE_PORT: '3001'
+  IMAGE_SERVICE_HOST: '0.0.0.0'
+  TEXT_SERVICE_PORT: '3002'
+  TEXT_SERVICE_HOST: '0.0.0.0'

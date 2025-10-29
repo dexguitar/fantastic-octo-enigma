@@ -3,12 +3,22 @@ const { createLogger } = require('../logger');
 
 const logger = createLogger('database');
 
+// SSL configuration - can be explicitly disabled via DB_SSL=false
+const getSSLConfig = () => {
+  // If DB_SSL is explicitly set, use that value
+  if (process.env.DB_SSL !== undefined) {
+    return process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false;
+  }
+  // Otherwise, use SSL in production by default
+  return process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false;
+};
+
 // Database configuration from environment variables
 const dbConfig = process.env.DATABASE_URL
   ? {
       // Railway-style connection string
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: getSSLConfig(),
       // Connection pool settings
       max: 20,
       idleTimeoutMillis: 30000,

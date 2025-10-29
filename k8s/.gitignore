@@ -1,0 +1,24 @@
+# Ignore generated or temporary Kubernetes files
+*.tmp
+*.temp
+
+# Ignore override files for local development
+*-override.yaml
+*-local.yaml
+kustomization-local.yaml
+
+# Ignore backup files
+*.bak
+*.backup
+
+# Ignore generated secrets (if you generate them locally)
+secret-*.yaml
+*-secret-generated.yaml
+
+# Ignore kubectl cache
+.kubectl-cache/
+
+# Ignore local testing outputs
+test-output/
+*.log
+
